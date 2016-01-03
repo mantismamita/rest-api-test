@@ -207,15 +207,31 @@ $rstest_child_obj = RSTTST_Child::getInstance();
 //modifying WP_Query for posts
 
 
-function hwl_home_pagesize( $query ) {
-	if ( is_admin() || ! $query->is_main_query() )
-		return;
+function rsttst_the_content_filter($content) {
 
-	if ( is_home() ) {
-		// Display only 1 post for the original blog archive
-		$query->set( 'posts_per_page', 1 );
+
+	$content .= rstest_get_remote_posts();
+
+	return $content;
+}
+
+function rsttst_get_remote_posts() {
+
+	$response = wp_remote_get( 'http://deep-thoughts.dev/wp-json/wp/v2/posts/1' );
+	if( is_wp_error( $response ) ) {
 		return;
 	}
 
+	$posts = json_decode( wp_remote_retrieve_body( $response ) );
+
+	if( empty( $posts ) ) {
+		return;
+	}
+
+
+	return $posts;
 }
-add_action( 'pre_get_posts', 'hwl_home_pagesize', 1 );
+
+//var_dump($rstest_obj);
+
+//add_filter( 'the_content', 'rsttst_the_content_filter' );
